@@ -1,13 +1,16 @@
-<?php
+protected $fillable = [
+    'name',
+    'description',
+    'duration',
+    'fee',
+    'difficulty',
+    'is_active',
+];
 
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Model;
-
-class Course extends Model
+protected function casts(): array
 {
-    protected $fillable = ['name', 'description', 'duration', 'fee', 'difficulty', 'is_active'];
-
-    // Turns the database value 1/0 into true/false in PHP
-    protected $casts = ['is_active' => 'boolean'];
+    return [
+        'is_active' => 'boolean',
+        'fee' => 'decimal:2',
+    ];
 }
