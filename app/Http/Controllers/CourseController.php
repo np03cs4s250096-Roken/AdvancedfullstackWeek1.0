@@ -1,69 +1,46 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Course\StoreCourseRequest;
+use App\Http\Requests\Course\UpdateCourseRequest;
+use App\Http\Resources\CourseResource;
 use App\Models\Course;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Http\JsonResponse;
 
 class CourseController extends Controller
 {
     public function index()
     {
-        return view('course.list', ['courses' => Course::all()]);
+        return CourseResource::collection(Course::all());
     }
 
-    public function create()
+    public function store(StoreCourseRequest $request)
     {
-        return view('course.create');
-    }
+        $course = Course::create($request->validated());
 
-    public function store(Request $request)
-    {
-        $course = Course::create($request->validate($this->rules()));
-
-        return redirect()
-            ->route('courses.index')
-            ->with('success', "Course {$course->name} created successfully!");
+        return (new CourseResource($course))
+            ->response()
+            ->setStatusCode(201);
     }
 
     public function show(Course $course)
     {
-        return view('course.detail', ['course' => $course]);
+        return new CourseResource($course);
     }
 
-    public function edit(Course $course)
+    public function update(UpdateCourseRequest $request, Course $course)
     {
-        return view('course.edit', ['course' => $course]);
+        $course->update($request->validated());
+
+        return new CourseResource($course->fresh());
     }
 
-    public function update(Request $request, Course $course)
-    {
-        $course->update($request->validate($this->rules()));
-
-        return redirect()
-            ->route('courses.show', $course)
-            ->with('success', 'Course updated successfully!');
-    }
-
-    public function destroy(Course $course)
+    public function destroy(Course $course): JsonResponse
     {
         $course->delete();
 
-        return redirect()
-            ->route('courses.index')
-            ->with('success', 'Course deleted successfully!');
-    }
-
-    private function rules(): array
-    {
-        return [
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'duration' => 'required|integer|min:1',
-            'fee' => 'required|numeric|min:0',
-            'difficulty' => ['required', Rule::in(['Easy', 'Medium', 'Hard'])],
-            'is_active' => 'boolean',
-        ];
+        return response()->json(null, 204);
     }
 }
